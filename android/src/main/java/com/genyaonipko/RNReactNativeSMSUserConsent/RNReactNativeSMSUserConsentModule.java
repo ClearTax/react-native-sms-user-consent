@@ -54,7 +54,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
    public void listenOTP(final Promise promise) {
        unregisterReceiver();
 
-       if (this.promise != null) {
+       if (this.promise != null && this.receiver != null) {
            promise.reject(E_OTP_ERROR, new Error("Reject previous request"));
        }
 
@@ -83,7 +83,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
     private void registerReceiver() {
         receiver = new SmsRetrieveBroadcastReceiver(reactContext.getCurrentActivity());
         IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
-        reactContext.getCurrentActivity().registerReceiver(receiver, intentFilter);
+        reactContext.getCurrentActivity().registerReceiver(receiver, intentFilter, SmsRetriever.SEND_PERMISSION, null);
     }
 
     private void unregisterReceiver() {
@@ -104,9 +104,13 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
                         String message = intent.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
                         WritableMap map = Arguments.createMap();
                         map.putString(RECEIVED_OTP_PROPERTY, message);
-                        promise.resolve(map);
+                        if(!this.promise ){
+                            promise.resolve(map);
+                        }
                     } else {
-                        promise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
+                        if(this.promise != null){
+                            promise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
+                        }
                     }
                     promise = null;
                     break;
