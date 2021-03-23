@@ -1,26 +1,18 @@
 package com.genyaonipko.RNReactNativeSMSUserConsent;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Bundle;
-import android.util.Log;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.BaseActivityEventListener;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
-import com.google.android.gms.common.api.CommonStatusCodes;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -28,7 +20,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import static android.app.Activity.RESULT_OK;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 
 public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModule {
@@ -39,7 +30,6 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
     private static final String E_OTP_ERROR = "E_OTP_ERROR";
     private static final String RECEIVED_OTP_PROPERTY = "receivedOtpMessage";
     public static final int SMS_CONSENT_REQUEST = 1244;
-    public static final String LOG_TAG = "NODE MODULE CHECK";
     final String SEND_PERMISSION = "com.google.android.gms.auth.api.phone.permission.SEND";
 
     public RNReactNativeSMSUserConsentModule(ReactApplicationContext reactContext) {
@@ -53,30 +43,30 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
         return "RNReactNativeSMSUserConsent";
     }
 
-   @ReactMethod
-   public void listenOTP(final Promise promise) {
-       unregisterReceiver();
+    @ReactMethod
+    public void listenOTP(final Promise promise) {
+        unregisterReceiver();
 
-       if (this.promise != null ) {
-           promise.reject(E_OTP_ERROR, new Error("Reject previous request"));
-       }
+        if (this.promise != null ) {
+            promise.reject(E_OTP_ERROR, new Error("Reject previous request"));
+        }
 
-       this.promise = promise;
-       Task<Void> task = SmsRetriever.getClient(reactContext.getCurrentActivity()).startSmsUserConsent(null);
-       task.addOnSuccessListener(new OnSuccessListener<Void>() {
-           @Override
-           public void onSuccess(Void aVoid) {
-               // successfully started an SMS Retriever for one SMS message
-               registerReceiver();
-           }
-       });
-       task.addOnFailureListener(new OnFailureListener() {
-           @Override
-           public void onFailure(@NonNull Exception e) {
-               promise.reject(E_OTP_ERROR, e);
-           }
-       });
-   }
+        this.promise = promise;
+        Task<Void> task = SmsRetriever.getClient(reactContext.getCurrentActivity()).startSmsUserConsent(null);
+        task.addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                // successfully started an SMS Retriever for one SMS message
+                registerReceiver();
+            }
+        });
+        task.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                promise.reject(E_OTP_ERROR, e);
+            }
+        });
+    }
 
     @ReactMethod
     public void removeOTPListener() {
@@ -84,8 +74,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
     }
 
     private void registerReceiver() {
-        Log.i(LOG_TAG, "Receiver registered");
-        receiver = new SmsRetrieveBroadcastReceiver(reactContext.getCurrentActivity());
+        receiver = new SmsRetrieveBroadcastReceiver(reactContext);
         IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
         reactContext.getCurrentActivity().registerReceiver(receiver, intentFilter, SEND_PERMISSION, null);
     }
@@ -102,7 +91,6 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
             switch (requestCode) {
                 case SMS_CONSENT_REQUEST:
-                    Log.i(LOG_TAG, "Consent given for read permission");
                     unregisterReceiver();
                     try{
                         if (resultCode == RESULT_OK) {
@@ -110,16 +98,12 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
                             String message = intent.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
                             WritableMap map = Arguments.createMap();
                             map.putString(RECEIVED_OTP_PROPERTY, message);
-                            if(promise != null ){
-                                promise.resolve(map);
-                            }
+                            promise.resolve(map);
                         } else {
-                            if(promise != null){
-                                promise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
-                            }
+                            promise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
                         }
                     }catch(Exception e){
-                        Log.i(LOG_TAG, "Exception occured after consent given. While reading promise");
+                        // Handle the exception here
                     }
                     promise = null;
                     break;
