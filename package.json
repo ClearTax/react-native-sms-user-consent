@@ -11,17 +11,18 @@
   "keywords": [
     "react-native"
   ],
-  "author": "Yevhenii Onipko",
+  "author": "Sony Venkatesh",
   "license": "MIT",
   "peerDependencies": {
     "react-native": "^0.41.2"
   },
+  "publishConfig": { "repository": "http://repo.internal.cleartax.co:4873/" },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/genyaonipko/react-native-sms-user-consent.git"
+    "url": "git+https://github.com/sarsony1/react-native-sms-user-consent.git"
   },
   "bugs": {
-    "url": "https://github.com/genyaonipko/react-native-sms-user-consent/issues"
+    "url": "https://github.com/sarsony1/react-native-sms-user-consent/issues"
   },
-  "homepage": "https://github.com/genyaonipko/react-native-sms-user-consent#readme"
+  "homepage": "https://github.com/sarsony1/react-native-sms-user-consent#readme"
 }
