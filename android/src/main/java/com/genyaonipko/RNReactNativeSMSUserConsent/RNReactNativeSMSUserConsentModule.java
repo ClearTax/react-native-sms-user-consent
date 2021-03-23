@@ -54,7 +54,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
    public void listenOTP(final Promise promise) {
        unregisterReceiver();
 
-       if (this.promise != null && this.receiver != null) {
+       if (this.promise != null ) {
            promise.reject(E_OTP_ERROR, new Error("Reject previous request"));
        }
 
@@ -104,11 +104,11 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
                         String message = intent.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
                         WritableMap map = Arguments.createMap();
                         map.putString(RECEIVED_OTP_PROPERTY, message);
-                        if(!this.promise ){
+                        if(promise != null ){
                             promise.resolve(map);
                         }
                     } else {
-                        if(this.promise != null){
+                        if(promise != null){
                             promise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
                         }
                     }
