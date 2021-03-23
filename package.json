@@ -1,6 +1,6 @@
 {
-  "name": "react-native-sms-user-consent",
-  "version": "1.0.51",
+  "name": "@cleartax/react-native-sms-user-consent",
+  "version": "1.0.0",
   "description": "This page describes how to use the SMS User Consent API to request user consent to read a single SMS verification message. If the user consents, the API returns the text of the message, from which you can get the verification code and complete the verification process.",
   "main": "index",
   "scripts": {
@@ -16,7 +16,9 @@
   "peerDependencies": {
     "react-native": "^0.41.2"
   },
-  "publishConfig": { "repository": "http://repo.internal.cleartax.co:4873/" },
+  "publishConfig": { 
+    "repository": "http://repo.internal.cleartax.co:4873/" 
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sarsony1/react-native-sms-user-consent.git"
