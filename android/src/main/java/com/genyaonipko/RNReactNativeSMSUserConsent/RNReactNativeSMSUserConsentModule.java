@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ActivityEventListener;
@@ -38,6 +39,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
     private static final String E_OTP_ERROR = "E_OTP_ERROR";
     private static final String RECEIVED_OTP_PROPERTY = "receivedOtpMessage";
     public static final int SMS_CONSENT_REQUEST = 1244;
+    public static final String LOG_TAG = "NODE MODULE CHECK";
     final String SEND_PERMISSION = "com.google.android.gms.auth.api.phone.permission.SEND";
 
     public RNReactNativeSMSUserConsentModule(ReactApplicationContext reactContext) {
@@ -82,6 +84,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
     }
 
     private void registerReceiver() {
+        Log.i(LOG_TAG, "Receiver registered");
         receiver = new SmsRetrieveBroadcastReceiver(reactContext.getCurrentActivity());
         IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
         reactContext.getCurrentActivity().registerReceiver(receiver, intentFilter, SEND_PERMISSION, null);
@@ -99,19 +102,24 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
             switch (requestCode) {
                 case SMS_CONSENT_REQUEST:
+                    Log.i(LOG_TAG, "Consent given for read permission");
                     unregisterReceiver();
-                    if (resultCode == RESULT_OK) {
-                        // Get SMS message content
-                        String message = intent.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
-                        WritableMap map = Arguments.createMap();
-                        map.putString(RECEIVED_OTP_PROPERTY, message);
-                        if(promise != null ){
-                            promise.resolve(map);
+                    try{
+                        if (resultCode == RESULT_OK) {
+                            // Get SMS message content
+                            String message = intent.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
+                            WritableMap map = Arguments.createMap();
+                            map.putString(RECEIVED_OTP_PROPERTY, message);
+                            if(promise != null ){
+                                promise.resolve(map);
+                            }
+                        } else {
+                            if(promise != null){
+                                promise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
+                            }
                         }
-                    } else {
-                        if(promise != null){
-                            promise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
-                        }
+                    }catch(Exception e){
+                        Log.i(LOG_TAG, "Exception occured after consent given. While reading promise");
                     }
                     promise = null;
                     break;
