@@ -38,6 +38,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
     private static final String E_OTP_ERROR = "E_OTP_ERROR";
     private static final String RECEIVED_OTP_PROPERTY = "receivedOtpMessage";
     public static final int SMS_CONSENT_REQUEST = 1244;
+    final String SEND_PERMISSION = "com.google.android.gms.auth.api.phone.permission.SEND";
 
     public RNReactNativeSMSUserConsentModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -83,7 +84,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
     private void registerReceiver() {
         receiver = new SmsRetrieveBroadcastReceiver(reactContext.getCurrentActivity());
         IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
-        reactContext.getCurrentActivity().registerReceiver(receiver, intentFilter, SmsRetriever.SEND_PERMISSION, null);
+        reactContext.getCurrentActivity().registerReceiver(receiver, intentFilter, SEND_PERMISSION, null);
     }
 
     private void unregisterReceiver() {
