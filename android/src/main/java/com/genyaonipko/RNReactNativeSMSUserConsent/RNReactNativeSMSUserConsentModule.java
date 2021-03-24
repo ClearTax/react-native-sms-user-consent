@@ -4,9 +4,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
 
+import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ActivityEventListener;
-import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
@@ -52,7 +52,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
         }
 
         this.promise = promise;
-        Task<Void> task = SmsRetriever.getClient(reactContext.getCurrentActivity()).startSmsUserConsent(null);
+        Task<Void> task = SmsRetriever.getClient(getCurrentActivity()).startSmsUserConsent(null);
         task.addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
@@ -74,27 +74,36 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
     }
 
     private void registerReceiver() {
-        receiver = new SmsRetrieveBroadcastReceiver(reactContext);
-        IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
-        reactContext.getCurrentActivity().registerReceiver(receiver, intentFilter, SEND_PERMISSION, null);
+        try{
+            receiver = new SmsRetrieveBroadcastReceiver(getCurrentActivity());
+            IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
+            getCurrentActivity().registerReceiver(receiver, intentFilter, SEND_PERMISSION, null);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private void unregisterReceiver() {
         if (receiver != null) {
-            reactContext.getCurrentActivity().unregisterReceiver(receiver);
-            receiver = null;
+            try{
+                getCurrentActivity().unregisterReceiver(receiver);
+                receiver = null;
+            }catch(Exception e){
+                e.printStackTrace();
+            }
         }
     }
 
     private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
+
         @Override
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
             switch (requestCode) {
                 case SMS_CONSENT_REQUEST:
                     unregisterReceiver();
                     try{
+                        // User permission granted state
                         if (resultCode == RESULT_OK) {
-                            // Get SMS message content
                             String message = intent.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
                             WritableMap map = Arguments.createMap();
                             map.putString(RECEIVED_OTP_PROPERTY, message);
@@ -103,7 +112,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
                             promise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
                         }
                     }catch(Exception e){
-                        // Handle the exception here
+                        e.printStackTrace();
                     }
                     promise = null;
                     break;

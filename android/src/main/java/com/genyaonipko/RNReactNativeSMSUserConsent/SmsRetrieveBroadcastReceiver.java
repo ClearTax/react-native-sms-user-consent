@@ -1,5 +1,6 @@
 package com.genyaonipko.RNReactNativeSMSUserConsent;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,17 +10,16 @@ import android.os.Bundle;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.Status;
-import com.facebook.react.bridge.ReactApplicationContext;
 
 public class SmsRetrieveBroadcastReceiver extends BroadcastReceiver {
 
     public static final int SMS_CONSENT_REQUEST = 1244;
 
-    private ReactApplicationContext reactContext;
+    private Activity activity;
 
-    public SmsRetrieveBroadcastReceiver(ReactApplicationContext rcontext) {
+    public SmsRetrieveBroadcastReceiver(Activity activity) {
         super();
-        this.reactContext = rcontext;
+        this.activity = activity;
     }
 
     @Override
@@ -33,9 +33,9 @@ public class SmsRetrieveBroadcastReceiver extends BroadcastReceiver {
                     // Get consent intent
                     Intent consentIntent = extras.getParcelable(SmsRetriever.EXTRA_CONSENT_INTENT);
                     try {
-                        reactContext.getCurrentActivity().startActivityForResult(consentIntent, SMS_CONSENT_REQUEST);
+                        this.activity.startActivityForResult(consentIntent, SMS_CONSENT_REQUEST);
                     } catch (ActivityNotFoundException e)  {
-                        // Handle the exception here
+                        e.printStackTrace();
                     }
                     break;
                 case CommonStatusCodes.TIMEOUT:
