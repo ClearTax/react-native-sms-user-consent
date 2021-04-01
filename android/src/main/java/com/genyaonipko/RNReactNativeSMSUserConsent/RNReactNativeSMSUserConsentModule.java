@@ -17,6 +17,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+
 import static android.app.Activity.RESULT_OK;
 
 import androidx.annotation.NonNull;
@@ -48,7 +49,7 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
         unregisterReceiver();
 
         if (this.promise != null ) {
-            promise.reject(E_OTP_ERROR, new Error("Reject previous request"));
+            this.promise.reject(E_OTP_ERROR, new Error("Reject previous request"));
         }
 
         this.promise = promise;
