@@ -3,6 +3,7 @@ package com.genyaonipko.RNReactNativeSMSUserConsent;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.util.Log;
 
 import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Promise;
@@ -24,14 +25,16 @@ import androidx.annotation.NonNull;
 
 
 public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModule {
+    private static final String LOG_TAG = "RNReactNativeSMSUserConsentModule";
 
     private final ReactApplicationContext reactContext;
-    private Promise promise;
+    private Promise currPromise;
     private SmsRetrieveBroadcastReceiver receiver;
     private static final String E_OTP_ERROR = "E_OTP_ERROR";
     private static final String RECEIVED_OTP_PROPERTY = "receivedOtpMessage";
     public static final int SMS_CONSENT_REQUEST = 1244;
     final String SEND_PERMISSION = "com.google.android.gms.auth.api.phone.permission.SEND";
+
 
     public RNReactNativeSMSUserConsentModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -48,30 +51,38 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
     public void listenOTP(final Promise promise) {
         unregisterReceiver();
 
-        if (this.promise != null ) {
-            this.promise.reject(E_OTP_ERROR, new Error("Reject previous request"));
+        if (currPromise != null ) {
+            currPromise.reject(E_OTP_ERROR, new Error("Rejected to conclude"));
         }
 
-        this.promise = promise;
+        currPromise = promise;
         Task<Void> task = SmsRetriever.getClient(getCurrentActivity()).startSmsUserConsent(null);
         task.addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 // successfully started an SMS Retriever for one SMS message
+                Log.d(LOG_TAG, "SMS retriever OTP listen task started");
                 registerReceiver();
             }
         });
         task.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
+                Log.d(LOG_TAG, "SMS retriever OTP listen task failed");
                 promise.reject(E_OTP_ERROR, e);
+                currPromise = null;
             }
         });
     }
 
     @ReactMethod
-    public void removeOTPListener() {
+    public void removeOTPListener(){
+        Log.d(LOG_TAG, "Remove OTP listener called");
         unregisterReceiver();
+        if (currPromise != null ) {
+            currPromise.reject(E_OTP_ERROR, new Error("Rejected to conclude"));
+        }
+        currPromise = null;
     }
 
     private void registerReceiver() {
@@ -108,14 +119,14 @@ public class RNReactNativeSMSUserConsentModule extends ReactContextBaseJavaModul
                             String message = intent.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
                             WritableMap map = Arguments.createMap();
                             map.putString(RECEIVED_OTP_PROPERTY, message);
-                            promise.resolve(map);
+                            currPromise.resolve(map);
                         } else {
-                            promise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
+                            currPromise.reject(E_OTP_ERROR, new Error("Result code: " + resultCode));
                         }
                     }catch(Exception e){
                         e.printStackTrace();
                     }
-                    promise = null;
+                    currPromise = null;
                     break;
             }
         }

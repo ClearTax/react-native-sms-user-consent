@@ -6,15 +6,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.auth.api.phone.SmsRetriever;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.Status;
 
 public class SmsRetrieveBroadcastReceiver extends BroadcastReceiver {
+    private static final String LOG_TAG = "RNReactNativeSMSUserConsentModule";
 
     public static final int SMS_CONSENT_REQUEST = 1244;
-
     private Activity activity;
 
     public SmsRetrieveBroadcastReceiver(Activity activity) {
@@ -31,6 +32,7 @@ public class SmsRetrieveBroadcastReceiver extends BroadcastReceiver {
             switch (statusCode) {
                 case CommonStatusCodes.SUCCESS:
                     // Get consent intent
+                    Log.d(LOG_TAG, "OTP received intent received from SMSRetriever");
                     Intent consentIntent = extras.getParcelable(SmsRetriever.EXTRA_CONSENT_INTENT);
                     try {
                         this.activity.startActivityForResult(consentIntent, SMS_CONSENT_REQUEST);
